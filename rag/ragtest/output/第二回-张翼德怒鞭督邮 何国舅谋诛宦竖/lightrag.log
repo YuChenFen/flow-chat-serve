@@ -1,0 +1,14 @@
+2024-11-13 17:54:42,850 - lightrag - INFO - Logger initialized for working directory: ./rag/ragtest/output/第二回-张翼德怒鞭督邮 何国舅谋诛宦竖
+2024-11-13 17:54:42,852 - lightrag - INFO - Load KV full_docs with 0 data
+2024-11-13 17:54:42,852 - lightrag - INFO - Load KV text_chunks with 0 data
+2024-11-13 17:54:42,852 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2024-11-13 17:54:42,852 - lightrag - INFO - Creating a new event loop in main thread.
+2024-11-13 17:54:42,859 - lightrag - INFO - [New Docs] inserting 1 docs
+2024-11-13 17:54:43,790 - lightrag - INFO - [New Chunks] inserting 6 chunks
+2024-11-13 17:54:43,790 - lightrag - INFO - Inserting 6 vectors to chunks
+2024-11-13 17:54:51,584 - lightrag - INFO - [Entity Extraction]...
+2024-11-13 20:12:52,546 - lightrag - INFO - Inserting 62 vectors to entities
+2024-11-13 20:13:01,849 - lightrag - INFO - Inserting 48 vectors to relationships
+2024-11-13 20:13:10,445 - lightrag - INFO - Writing graph with 66 nodes, 48 edges
+2024-11-13 20:13:10,539 - lightrag - INFO - Creating a new event loop in main thread.
+2024-11-13 20:13:52,695 - lightrag - INFO - Global query uses 48 entites, 48 relations, 3 text units

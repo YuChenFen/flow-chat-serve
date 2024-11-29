@@ -1,0 +1,8 @@
+env
+demo
+
+static/image/community/*
+static/image/random/*
+static/image/userAvatar/*
+
+database.db

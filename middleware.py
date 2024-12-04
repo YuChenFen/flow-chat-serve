@@ -26,13 +26,6 @@ class JWTMiddleware(BaseHTTPMiddleware):
                 request.state.user_id = message["user_id"]
                 response = await call_next(request)
                 return response
-            else:
-                return JSONResponse({
-                "code": 401,
-                "data": None,
-                "success": False,
-                "message": message["message"]
-            })
         else:
             return JSONResponse({
                 "code": 401,

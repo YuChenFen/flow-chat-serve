@@ -9,7 +9,7 @@ random_file_list = os.listdir(f"{IMAGE_BASE_PATH}/random")
 
 file_api_router = APIRouter()
 
-@file_api_router.get("/image/random")
+@file_api_router.get("/image/random", summary="随机返回一张图片")
 async def random_image():
     try:
         random_num = random.randint(0, len(random_file_list)-1)
@@ -21,14 +21,14 @@ async def random_image():
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
 
-@file_api_router.get("/image/community/{image_name}")
+@file_api_router.get("/image/community/{image_name}", summary="返回社区图片")
 async def community_image(image_name: str):
     try:
         return FileResponse(f"{IMAGE_BASE_PATH}/community/{image_name}")
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
 
-@file_api_router.get("/image/userAvatar/{image_name}")
+@file_api_router.get("/image/userAvatar/{image_name}", summary="返回用户头像图片")
 async def user_image(image_name: str):
     try:
         return FileResponse(f"{IMAGE_BASE_PATH}/userAvatar/{image_name}")

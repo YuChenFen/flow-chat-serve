@@ -10,8 +10,24 @@ import os
 con = sqlite3.connect("./database.db")
 cur = con.cursor()
 
-@db_api_router.get("/login")
+@db_api_router.get("/login", summary="登录")
 async def login(userAccount: str, userPassword: str):
+    """
+    用户登录
+
+    - userAccount 用户名
+    - userPassword 密码
+
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+
+    data:
+    - token 登录凭证
+    - userRole 用户角色
+    """
     try:
         # 查询是否有该用户
         userPassword = hashlib.md5(userPassword.encode()).hexdigest()
@@ -55,8 +71,20 @@ class User(BaseModel):
     userAccount: str
     userPassword: str
 
-@db_api_router.post("/register")
+@db_api_router.post("/register", summary="注册")
 async def register(user: User):
+    """
+    用户注册
+
+    - userAccount 用户名
+    - userPassword 密码
+
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+    """
     try:
         userAccount = user.userAccount
         userPassword = user.userPassword
@@ -92,8 +120,25 @@ async def register(user: User):
             "message": f"Error: {e}"
         }
     
-@db_api_router.get("/user/info")
+@db_api_router.get("/user/info", summary="获取用户信息")
 async def get_user_info(request: Request):
+    """
+    获取用户信息
+
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+
+    data:
+    - userAvatar 用户头像
+    - userName 用户名
+    - gender 性别
+    - phone 手机号
+    - email 邮箱
+    - userRole 用户角色
+    """
     try:
         user_id = request.state.user_id
         result = cur.execute(f"SELECT userAvatar, userName, gender, phone, email, userRole FROM user WHERE id=?", (
@@ -127,7 +172,7 @@ async def get_user_info(request: Request):
             "message": f"Error: {e}"
         }
 
-@db_api_router.post("/user/update")
+@db_api_router.post("/user/update", summary="更新用户信息")
 async def update(
     request: Request,
     userAvatar: UploadFile = File(default=None), 
@@ -136,6 +181,21 @@ async def update(
     phone: str = Form(title='手机号', default=''),
     email: str = Form(title='邮箱', default='')
     ):
+    """
+    更新用户信息
+
+    - userAvatar 用户头像
+    - userName 用户名
+    - gender 性别
+    - phone 手机号
+    - email 邮箱
+
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+    """
     try:
         user_id = request.state.user_id
         update_list = []
@@ -196,7 +256,7 @@ async def update(
             "message": f"Error: {e}"
         }
     
-@db_api_router.get("/user/query")
+@db_api_router.get("/user/query", summary="查询用户数据")
 async def query(search: str, where: str = None, page: int = 1, size: int = 10):
     """
     获取指定用户数据
@@ -231,8 +291,21 @@ class Information(BaseModel):
     userRole: str
     isDelete: int
     
-@db_api_router.post("/user/change")
+@db_api_router.post("/user/change", summary="修改用户权限和禁用状态")
 async def change(request: Request, information: Information):
+    """
+    修改用户权限和禁用状态
+
+    - userAccount 用户账号
+    - userRole 用户角色
+    - isDelete 是否删除
+
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+    """
     try:
         user_id = request.state.user_id
         # 查询是不是管理员

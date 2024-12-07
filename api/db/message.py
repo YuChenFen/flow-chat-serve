@@ -4,7 +4,7 @@ from starlette.requests import Request
 from api.db.index import db_api_router
 from utils import random_utils
 from urllib.parse import quote
-from vectorDatabase.index import vd_query
+from retriever.index import retriever_query
 import sqlite3
 import asyncio
 import json
@@ -35,8 +35,11 @@ async def event_generator(user_id: int, client: asyncio.Queue):
                 room_ollaboration[room_id].remove(user_id)
         raise e
 
-@db_api_router.get("/message/link")
+@db_api_router.get("/message/link", summary="创建连接-SSE")
 async def link(request: Request):
+    """
+    创建连接
+    """
     try:
         user_id = request.state.user_id
         link_map[user_id] = asyncio.Queue()
@@ -49,8 +52,23 @@ async def link(request: Request):
             "message": f"Error: {e}"
         }
 
-@db_api_router.get("/message/unread")
+@db_api_router.get("/message/unread", summary="获取未读消息")
 async def unread(request: Request):
+    """
+    获取未读消息
+
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+
+    data:
+    - fromUserId 发送者id
+    - content 消息内容
+    - type 消息类型
+    - createTime 消息创建时间
+    """
     try:
         user_id = request.state.user_id
         result = cur.execute(f"SELECT fromId, content, type, createTime FROM message WHERE toId=? AND unread=1", (user_id,)).fetchall()
@@ -78,8 +96,17 @@ async def unread(request: Request):
             "message": f"Error: {e}"
         }
 
-@db_api_router.get("/message/collaboration/create")
+@db_api_router.get("/message/collaboration/create", summary="创建协作房间")
 async def create_collaboration_room(request: Request):
+    """
+    创建协作房间
+
+    返回值：
+    - code 状态码
+    - data 房间号
+    - success 是否成功
+    - message 提示信息
+    """
     try:
         user_id = request.state.user_id
         room_id = random_utils.get_room_id()
@@ -98,8 +125,19 @@ async def create_collaboration_room(request: Request):
             "message": f"Error: {e}"
         }
 
-@db_api_router.get("/message/collaboration/join")
+@db_api_router.get("/message/collaboration/join", summary="加入协作房间")
 async def join_collaboration_room(request: Request, roomId: str):
+    """
+    加入协作房间
+
+    - roomId 房间号
+
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+    """
     try:
         user_id = request.state.user_id
         if roomId not in room_ollaboration:
@@ -124,8 +162,19 @@ async def join_collaboration_room(request: Request, roomId: str):
             "message": f"Error: {e}"
         }
 
-@db_api_router.get("/message/collaboration/leave")
+@db_api_router.get("/message/collaboration/leave", summary="离开协作房间")
 async def leave_collaboration_room(request: Request, roomId: str):
+    """
+    离开协作房间
+
+    - roomId 房间号
+    
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+    """
     try:
         user_id = request.state.user_id
         if roomId not in room_ollaboration:
@@ -154,8 +203,21 @@ async def leave_collaboration_room(request: Request, roomId: str):
 
 
 
-@db_api_router.post("/message/send")
+@db_api_router.post("/message/send", summary="发送消息")
 async def send(request: Request, message: Message):
+    """
+    发送消息
+
+    - to 接收者id
+    - content 消息内容
+    - type 消息类型
+
+    返回值：
+    - code 状态码
+    - data 数据
+    - success 是否成功
+    - message 提示信息
+    """
     try:
         if message.type == 'text':
             from_user_id = request.state.user_id
@@ -194,16 +256,15 @@ async def send(request: Request, message: Message):
             "message": f"Error: {e}"
         }
 
-class vbData(BaseModel):
+class retrieverData(BaseModel):
     text: str
     query: str
 
-@db_api_router.post("/message/vd/query")
-async def vd_query_gat(vb_data: vbData):
+@db_api_router.post("/message/retriever/query", summary="检索器查询")
+async def retriever_query_gat(data: retrieverData):
     '''
         查询相关的数据
-        text: 所有内容 
-        - 格式为 
+        - text: 所有内容，格式为 
         ```
         |节点|节点内容|
         |节点一|节点一内容|
@@ -213,18 +274,20 @@ async def vd_query_gat(vb_data: vbData):
         | ... | ... | ... | ... |
         ```
 
-        query: 查询语句
+        - query: 查询语句
 
         返回： 最多一百条结果
         nodes_results: 节点查询结果
         edges_results: 边查询结果
     '''
     try:
-        data = vb_data.text.split("\n\n")
-        nodes = data[0].split("\n")[1:]
-        edges = data[1].split("\n")[1:]
-        nodes_results = vd_query(nodes, vb_data.query, 250)
-        edges_results = vd_query(edges, vb_data.query, 250)
+        text = data.text.split("\n\n")
+        nodes = text[0].split("\n")[1:]
+        edges = text[1].split("\n")[1:]
+        nodes = [n for n in nodes if n.strip()]
+        edges = [e for e in edges if e.strip()]
+        nodes_results = retriever_query(nodes, data.query, 100, 0.5)
+        edges_results = retriever_query(edges, data.query, 100, 0.5)
         return {
             "code": 200,
             "data": {

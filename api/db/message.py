@@ -256,12 +256,14 @@ async def send(request: Request, message: Message):
             "message": f"Error: {e}"
         }
 
-class retrieverData(BaseModel):
+class chartRetrieverData(BaseModel):
     text: str
-    query: str
+    words: list
+    n: int = 100
+    weight: float = 0.5
 
-@db_api_router.post("/message/retriever/query", summary="检索器查询")
-async def retriever_query_gat(data: retrieverData):
+@db_api_router.post("/message/retriever/query", summary="图谱检索器查询")
+async def retriever_query_gat(data: chartRetrieverData):
     '''
         查询相关的数据
         - text: 所有内容，格式为 
@@ -274,7 +276,7 @@ async def retriever_query_gat(data: retrieverData):
         | ... | ... | ... | ... |
         ```
 
-        - query: 查询语句
+        - words: 关键词
 
         返回： 最多一百条结果
         nodes_results: 节点查询结果
@@ -286,8 +288,8 @@ async def retriever_query_gat(data: retrieverData):
         edges = text[1].split("\n")[1:]
         nodes = [n for n in nodes if n.strip()]
         edges = [e for e in edges if e.strip()]
-        nodes_results = retriever_query(nodes, data.query, 100, 0.5)
-        edges_results = retriever_query(edges, data.query, 100, 0.5)
+        nodes_results = retriever_query(nodes, data.words, data.n, data.weight)
+        edges_results = retriever_query(edges, data.words, data.n, data.weight)
         return {
             "code": 200,
             "data": {
@@ -305,3 +307,35 @@ async def retriever_query_gat(data: retrieverData):
            "message": f"Error: {e}"
        }
 
+class retrieverData(BaseModel):
+    text: str
+    query: str
+    n: int = 100
+    weight: float = 0.5
+
+@db_api_router.post("/message/retriever/text/query", summary="文本检索器查询")
+async def retriever_query_text(data: retrieverData):
+    '''
+        查询相关的数据
+        - text: 内容文本，段落以换行符分割
+        - query: 查询语句
+        - n: 返回数量
+
+        返回： 最多一百条结果
+        data: 查询结果
+    '''
+    try:
+        text = data.text.split("\n")
+        text = [t for t in text if t.strip()]
+        results = retriever_query(text, [data.query], data.n, data.weight)
+        return {
+            "code": 200,
+            "data": results,
+            "success": True,
+            "message": "查询成功"
+        }
+    except Exception as e:
+       return {
+           "code": 500,
+           "data": None,
+       }
